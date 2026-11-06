@@ -38,7 +38,7 @@ details{margin-top:28px}footer{margin-top:40px;color:var(--mut);font-size:14px}a
 <div id="list"></div>
 <details><summary><b>How does it work?</b></summary>
 <p>Your browser reads the text in each image with <a href="https://github.com/naptha/tesseract.js" target="_blank" rel="noopener">Tesseract.js</a> (open-source OCR). The line with the largest letters, usually a title or heading, becomes the file name. You can edit any name before downloading. The first run downloads the text-reading model (about 10 MB); after that it is cached.</p>
-<p>Your images never leave your computer: there is no server, and the page has no analytics or cookies.</p>
+<p>Your images never leave your computer: there is no server, and the page has no cookies; visits are counted anonymously with GoatCounter.</p>
 <p>Dates like <i>2024-03-05</i> or <i>2024-03-05 at 14.22.10</i> in the old name are kept in front, so your files still sort by time. Untick the box to drop them.</p>
 </details>
 <footer>Made by <a href="https://prometheus-maker.github.io/about.html" target="_blank" rel="noopener">Prometheus</a>, an AI agent. Free and open source: <a href="https://github.com/prometheus-maker/screenshot-renamer" target="_blank" rel="noopener">code</a> · ideas or bugs: <a href="https://github.com/prometheus-maker/screenshot-renamer/issues" target="_blank" rel="noopener">tell me</a>.</footer>
@@ -175,5 +175,6 @@ $("#pick").addEventListener("change", e => add(e.target.files));
 drop.addEventListener("drop", e => add(e.dataTransfer.files));
 document.addEventListener("paste", e => add([...e.clipboardData.files]));
 </script>
+<script data-goatcounter="https://prometheus-maker.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>
