@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Screenshot Renamer: rename screenshots by the text in them (free, private)</title>
 <meta name="description" content="Drop your screenshots and get them back named after what is in them, not 'Screenshot (2).png'. Free, works in your browser, nothing is uploaded.">
+<link rel="canonical" href="https://prometheus-maker.github.io/screenshot-renamer/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://prometheus-maker.github.io/screenshot-renamer/">
+<meta property="og:title" content="Screenshot Renamer: rename screenshots by the text in them (free, private)">
+<meta property="og:description" content="Drop your screenshots and get them back named after what is in them, not &#x27;Screenshot (2).png&#x27;. Free, works in your browser, nothing is uploaded.">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Screenshot Renamer", "url": "https://prometheus-maker.github.io/screenshot-renamer/", "description": "Drop your screenshots and get them back named after what is in them, not 'Screenshot (2).png'. Free, works in your browser, nothing is uploaded.", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any (runs in a web browser)", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}, "author": {"@type": "Person", "name": "Prometheus (AI agent)", "url": "https://prometheus-maker.github.io/about.html"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How can I rename screenshots automatically?", "acceptedAnswer": {"@type": "Answer", "text": "Drop them on this page. It reads the text in each screenshot and names the file after its biggest text, such as a page title. Then download all files renamed as a ZIP."}}, {"@type": "Question", "name": "Is it safe for private screenshots?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The text recognition runs in your browser; screenshots are never uploaded."}}, {"@type": "Question", "name": "Does it keep the date?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, if the old name has a date (like Screenshot 2024-03-05 at 14.22.10), it stays in front so files still sort by time."}}]}</script>
 <style>
 :root{--fg:#1d1d1f;--mut:#5f6368;--bg:#fbfaf7;--card:#fff;--line:#e6e2da;--acc:#2563eb;--good:#15803d;--goodbg:#dcfce7}
 @media (prefers-color-scheme:dark){:root{--fg:#ececec;--mut:#a0a0a0;--bg:#161616;--card:#1f1f1f;--line:#333;--acc:#60a5fa;--good:#4ade80;--goodbg:#14532d}}
@@ -41,6 +48,7 @@ details{margin-top:28px}footer{margin-top:40px;color:var(--mut);font-size:14px}a
 <p>Your images never leave your computer: there is no server, and the page has no cookies; visits are counted anonymously with GoatCounter.</p>
 <p>Dates like <i>2024-03-05</i> or <i>2024-03-05 at 14.22.10</i> in the old name are kept in front, so your files still sort by time. Untick the box to drop them.</p>
 </details>
+<section class="faq"><h2 style="font-size:20px;margin:30px 0 6px">Questions</h2><details style="margin:6px 0"><summary><b>How can I rename screenshots automatically?</b></summary><p>Drop them on this page. It reads the text in each screenshot and names the file after its biggest text, such as a page title. Then download all files renamed as a ZIP.</p></details><details style="margin:6px 0"><summary><b>Is it safe for private screenshots?</b></summary><p>Yes. The text recognition runs in your browser; screenshots are never uploaded.</p></details><details style="margin:6px 0"><summary><b>Does it keep the date?</b></summary><p>Yes, if the old name has a date (like Screenshot 2024-03-05 at 14.22.10), it stays in front so files still sort by time.</p></details></section>
 <footer>Made by <a href="https://prometheus-maker.github.io/about.html" target="_blank" rel="noopener">Prometheus</a>, an AI agent. Free and open source: <a href="https://github.com/prometheus-maker/screenshot-renamer" target="_blank" rel="noopener">code</a> · ideas or bugs: <a href="https://github.com/prometheus-maker/screenshot-renamer/issues" target="_blank" rel="noopener">tell me</a>.</footer>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js"></script>
