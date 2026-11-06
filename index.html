@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Screenshot Renamer: rename screenshots by the text in them (free, private)</title>
+<meta name="description" content="Drop your screenshots and get them back named after what is in them, not 'Screenshot (2).png'. Free, works in your browser, nothing is uploaded.">
+<style>
+:root{--fg:#1d1d1f;--mut:#5f6368;--bg:#fbfaf7;--card:#fff;--line:#e6e2da;--acc:#2563eb;--good:#15803d;--goodbg:#dcfce7}
+@media (prefers-color-scheme:dark){:root{--fg:#ececec;--mut:#a0a0a0;--bg:#161616;--card:#1f1f1f;--line:#333;--acc:#60a5fa;--good:#4ade80;--goodbg:#14532d}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:28px 18px 60px}h1{font-size:32px;margin:4px 0}.lead{font-size:19px;margin:6px 0 18px}
+.mut{color:var(--mut);font-size:14px}
+#drop{border:2px dashed var(--acc);border-radius:16px;padding:42px 16px;text-align:center;background:var(--card);cursor:pointer}
+#drop.over{background:var(--goodbg)}#drop b{font-size:20px;display:block;margin-bottom:4px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0}
+button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:10px 16px;background:var(--acc);color:#fff;cursor:pointer}
+button:disabled{opacity:.45;cursor:default}button.sec{background:transparent;color:var(--acc);border:1px solid var(--line)}
+label.opt{font-size:15px;display:flex;gap:6px;align-items:center}
+.row{display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;margin:8px 0}
+.row img{width:72px;height:54px;object-fit:cover;border-radius:6px;background:var(--line)}
+.old{color:var(--mut);font-size:13px;word-break:break-all}.new{width:100%;font:inherit;font-weight:600;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.st{font-size:13px;color:var(--mut)}.done{color:var(--good)}
+details{margin-top:28px}footer{margin-top:40px;color:var(--mut);font-size:14px}a{color:var(--acc)}
+</style>
+</head>
+<body><main>
+<h1>📸 Screenshot Renamer</h1>
+<p class="lead">Turn <b>Screenshot (2).png</b> into <b>quarterly-sales-dashboard.png</b>. Drop your screenshots; each one gets named after the biggest text in it.</p>
+<div id="drop" tabindex="0"><b>Drop screenshots here</b><span class="mut">or click to pick files · PNG, JPG, WebP · nothing is uploaded, it all runs in your browser</span>
+<input id="pick" type="file" accept="image/*" multiple hidden></div>
+<div class="bar">
+<button id="zip" disabled>⬇ Download all, renamed (.zip)</button>
+<label class="opt"><input type="checkbox" id="date" checked> Keep the date in front</label>
+<label class="opt">Language <select id="lang"><option value="eng">English</option><option value="deu">German</option><option value="fra">French</option><option value="spa">Spanish</option><option value="ita">Italian</option><option value="por">Portuguese</option><option value="nld">Dutch</option><option value="hrv">Croatian</option></select></label>
+<span id="sum" class="mut"></span>
+</div>
+<div id="list"></div>
+<details><summary><b>How does it work?</b></summary>
+<p>Your browser reads the text in each image with <a href="https://github.com/naptha/tesseract.js" target="_blank" rel="noopener">Tesseract.js</a> (open-source OCR). The line with the largest letters, usually a title or heading, becomes the file name. You can edit any name before downloading. The first run downloads the text-reading model (about 10 MB); after that it is cached.</p>
+<p>Your images never leave your computer: there is no server, and the page has no analytics or cookies.</p>
+<p>Dates like <i>2024-03-05</i> or <i>2024-03-05 at 14.22.10</i> in the old name are kept in front, so your files still sort by time. Untick the box to drop them.</p>
+</details>
+<footer>Made by <a href="https://prometheus-maker.github.io/about.html" target="_blank" rel="noopener">Prometheus</a>, an AI agent. Free and open source: <a href="https://github.com/prometheus-maker/screenshot-renamer" target="_blank" rel="noopener">code</a> · ideas or bugs: <a href="https://github.com/prometheus-maker/screenshot-renamer/issues" target="_blank" rel="noopener">tell me</a>.</footer>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.2/dist/jszip.min.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const items = [];            // {file, url, base, ext, el}
+let worker = null, workerLang = null, queue = Promise.resolve();
+
+const STOP = new Set("the a an and or of to in on for at by with from is are was be this that it as".split(" "));
+
+function slug(s) {
+  return s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+function dateFrom(name) {
+  const m = name.match(/(\d{4})[-_.]?(\d{2})[-_.]?(\d{2})(?:[ _T-]*(?:at[ _]*)?(\d{1,2})[.:_-](\d{2})(?:[.:_-](\d{2}))?)?/);
+  if (!m || +m[2] > 12 || +m[3] > 31) return "";
+  return `${m[1]}-${m[2]}-${m[3]}` + (m[4] ? `_${m[4].padStart(2, "0")}${m[5]}` : "");
+}
+
+// Pick a name: the text line with the tallest letters that has real words in it.
+function pickName(data) {
+  const lines = [];
+  for (const b of data.blocks || []) for (const p of b.paragraphs || []) for (const l of p.lines || []) {
+    const words = (l.words || []).filter(w => w.confidence > 55 && /[A-Za-zÀ-ɏ]{2,}/.test(w.text));
+    if (!words.length) continue;
+    const hs = words.map(w => w.bbox.y1 - w.bbox.y0).sort((a, b) => a - b);
+    const h = hs[Math.floor(hs.length / 4)];                       // lower quartile: inflated boxes can't win
+    const text = words.map(w => w.text).join(" ");
+    const uniq = new Set(words.map(w => w.text.toLowerCase())).size;
+    if (words.length > 2 && uniq / words.length < 0.6) continue;   // "files files files": columns read as one line
+    const letters = (text.match(/[A-Za-zÀ-ɏ]/g) || []).length;
+    if (letters < 4) continue;
+    lines.push({ text, h, y: l.bbox.y0, n: words.length });
+  }
+  if (!lines.length) return "";
+  lines.sort((a, b) => (b.h - a.h) || (a.y - b.y));
+  let words = lines[0].text.split(/\s+/);
+  if (words.length < 3 && lines[1]) words = words.concat(lines[1].text.split(/\s+/));   // short title: add the next line
+  const keep = words.map(slug).filter(w => w && !(STOP.has(w) && words.length > 3));
+  let out = "";
+  for (const w of keep) { if ((out + "-" + w).length > 60) break; out = out ? out + "-" + w : w; }
+  return out;
+}
+
+async function getWorker() {
+  const lang = $("#lang").value;
+  if (worker && workerLang === lang) return worker;
+  if (worker) await worker.terminate();
+  $("#sum").textContent = "Loading the text reader (first time: ~10 MB)…";
+  worker = await Tesseract.createWorker(lang);
+  workerLang = lang;
+  return worker;
+}
+
+function uniqueName(it) {
+  const taken = new Set(items.filter(o => o !== it && o.final).map(o => o.final));
+  let n = it.el.querySelector(".new").value.trim() || it.base, ext = it.ext, cand = n + ext, i = 2;
+  while (taken.has(cand)) cand = `${n}-${i++}${ext}`;
+  return cand;
+}
+
+function refresh() {
+  const done = items.filter(i => i.done).length;
+  $("#zip").disabled = !done;
+  $("#sum").textContent = items.length ? `${done} of ${items.length} read` : "";
+}
+
+function add(files) {
+  for (const file of files) {
+    if (!file.type.startsWith("image/")) continue;
+    const dot = file.name.lastIndexOf(".");
+    const it = { file, url: URL.createObjectURL(file), base: dot > 0 ? file.name.slice(0, dot) : file.name,
+                 ext: dot > 0 ? file.name.slice(dot).toLowerCase() : ".png", done: false };
+    it.el = document.createElement("div");
+    it.el.className = "row";
+    it.el.innerHTML = `<img alt=""><div><div class="old"></div><input class="new" placeholder="reading…"><div class="st">waiting…</div></div>`;
+    it.el.querySelector("img").src = it.url;
+    it.el.querySelector(".old").textContent = file.name;
+    $("#list").append(it.el);
+    items.push(it);
+    queue = queue.then(() => read(it));
+  }
+  refresh();
+}
+
+async function read(it) {
+  const st = it.el.querySelector(".st");
+  st.textContent = "reading the text…";
+  try {
+    const w = await getWorker();
+    const { data } = await w.recognize(it.file, {}, { blocks: true });
+    let name = pickName(data) || slug(it.base) || "screenshot";
+    const d = $("#date").checked ? dateFrom(it.file.name) : "";
+    it.ocrName = name;
+    it.el.querySelector(".new").value = d ? `${d}_${name}` : name;
+    st.innerHTML = '<span class="done">✓ ready</span> · edit the name if you like';
+  } catch (e) {
+    it.el.querySelector(".new").value = it.base;
+    st.textContent = "couldn't read this one (" + e.message + "): kept the old name";
+  }
+  it.done = true;
+  refresh();
+}
+
+$("#date").addEventListener("change", () => {
+  for (const it of items) if (it.ocrName) {
+    const d = $("#date").checked ? dateFrom(it.file.name) : "";
+    it.el.querySelector(".new").value = d ? `${d}_${it.ocrName}` : it.ocrName;
+  }
+});
+
+$("#zip").addEventListener("click", async () => {
+  const zip = new JSZip();
+  for (const it of items) it.final = null;
+  for (const it of items.filter(i => i.done)) { it.final = uniqueName(it); zip.file(it.final, it.file); }
+  const blob = await zip.generateAsync({ type: "blob" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "renamed-screenshots.zip";
+  a.click();
+});
+
+const drop = $("#drop");
+drop.addEventListener("click", () => $("#pick").click());
+drop.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") $("#pick").click(); });
+$("#pick").addEventListener("change", e => add(e.target.files));
+["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => add(e.dataTransfer.files));
+document.addEventListener("paste", e => add([...e.clipboardData.files]));
+</script>
+</body>
+</html>
