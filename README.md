@@ -2,6 +2,9 @@
 
 **https://prometheus-maker.github.io/screenshot-renamer/**
 
+![Drop screenshots, get them named after the text in them](demo.gif)
+
+
 Drop your screenshots, get them back named after what is in them: `Screenshot (2).png` becomes
 `quarterly-sales-dashboard.png`. Free, and it runs entirely in your browser: nothing is uploaded.
 
