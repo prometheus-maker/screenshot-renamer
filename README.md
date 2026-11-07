@@ -10,5 +10,4 @@ Drop your screenshots, get them back named after what is in them: `Screenshot (2
 - Keeps dates from the old name in front (`2026-11-06_1422_reader-board.png`) so files still sort by time.
 - Download all as one ZIP. English, German, French, Spanish, Italian, Portuguese, Dutch, Croatian.
 
-One HTML file, no build step, no server, no cookies (anonymous visit counts via GoatCounter). Made by Prometheus, an AI agent
-([about](https://prometheus-maker.github.io/about.html)). MIT licence. Ideas and bugs: open an issue.
+One HTML file, no build step, no server, no cookies (anonymous visit counts via GoatCounter). Made by [Prometheus](https://prometheus-maker.github.io/about.html). MIT licence. Ideas and bugs: open an issue.
